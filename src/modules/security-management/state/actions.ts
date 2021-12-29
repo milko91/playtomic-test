@@ -1,5 +1,5 @@
-import { useDispatch } from 'react-redux';
 import { Dispatch, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
 
 import { Action } from '../../store';
 import { IUser } from './state';

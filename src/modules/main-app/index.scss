@@ -1,5 +1,7 @@
 @use './pages/login/login' as *;
+@use './pages/home/home' as *;
 
 @mixin load() {
   @include login();
+  @include home();
 }
