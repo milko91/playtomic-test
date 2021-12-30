@@ -49,7 +49,6 @@ export const getWeatherForCity = async (city: string): Promise<IWeatherData | nu
   try {
     const response = await api.get(`/weather?q=${city}&units=metric&appid=${API_KEY}`);
     if (response.status === 200) {
-      console.log(response.data);
       return mapResponseData(response.data);
     }
 

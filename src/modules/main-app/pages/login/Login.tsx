@@ -1,27 +1,31 @@
 import { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { Formik, Form, Field, ErrorMessage, FormikHelpers } from 'formik';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
 import { auth } from '../../../../base';
 import { useSecurityManagementDispatch, useSetUserAction } from '../../../security-management/state/actions';
 import { setToSessionStorage, USER_STORAGE_KEY } from '../../../common/utils/storage';
+import { validationSchema } from '../../../common/validationSchema';
+
+interface Values {
+  email: string;
+  password: string;
+}
+
+const initialValues: Values = {
+  email: '',
+  password: '',
+};
 
 export const Login: FC = () => {
   const dispatch = useSecurityManagementDispatch();
   const dispatchSetUser = useSetUserAction(dispatch);
   const navigate = useNavigate();
 
-  const handleLogin = async (event: React.SyntheticEvent) => {
-    event.preventDefault();
-    const target = event.target as typeof event.target & {
-      email: { value: string };
-      password: { value: string };
-    };
-    const email = target.email.value;
-    const password = target.password.value;
+  const handleLogin = async (values: Values, submittingObject: FormikHelpers<Values>) => {
     try {
-      const user = await signInWithEmailAndPassword(auth, email, password);
+      const user = await signInWithEmailAndPassword(auth, values.email, values.password);
       const token = await user.user.getIdToken();
       const userData = { username: user.user.email as string, accessToken: token };
       dispatchSetUser(userData);
@@ -29,21 +33,33 @@ export const Login: FC = () => {
       navigate('/dashboard');
     } catch (error) {
       // show notification
+      alert('Wrong credentials');
+    } finally {
+      submittingObject.resetForm();
     }
   };
 
-  // TODO add form validation, Formik maybe
   return (
     <div className="login">
       <div className="login-container">
         <div className="login-container__title">Sign in</div>
-        <form onSubmit={handleLogin} className="login-container__form">
-          <input name="email" type="email" placeholder="Email" />
-          <input name="password" type="password" placeholder="Password" />
-          <button className="login-container__button" type="submit">
-            Sign in
-          </button>
-        </form>
+        <Formik initialValues={initialValues} onSubmit={handleLogin} validationSchema={validationSchema}>
+          {(formikProps) => (
+            <Form className="login-container__form">
+              <Field name="email" type="email" placeholder="Email" />
+              <ErrorMessage className="error-message" name="email" component="div" />
+              <Field name="password" type="password" placeholder="Password" />
+              <ErrorMessage className="error-message" name="password" component="div" />
+              <button
+                className="login-container__button"
+                type="submit"
+                disabled={!formikProps.isValid || formikProps.isSubmitting}
+              >
+                Sign in
+              </button>
+            </Form>
+          )}
+        </Formik>
       </div>
     </div>
   );
